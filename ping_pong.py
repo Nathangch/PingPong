@@ -21,6 +21,7 @@ clock = pygame.time.Clock()
 
 # Fonts
 font = pygame.font.SysFont("Outfit", 50)
+small_font = pygame.font.SysFont("Outfit", 30)
 
 class Paddle:
     def __init__(self, x, y, width, height, color):
@@ -68,16 +69,75 @@ class Ball:
             pygame.draw.circle(surface, self.color, self.rect.center, (self.rect.width // 2) + i, 1)
         pygame.draw.ellipse(surface, self.color, self.rect)
 
+def draw_text(text, font, color, y_offset=0):
+    text_surf = font.render(text, True, color)
+    text_rect = text_surf.get_rect(center=(WIDTH // 2, HEIGHT // 2 + y_offset))
+    screen.blit(text_surf, text_rect)
+
 def draw_winner(winner_text, color):
-    text = font.render(winner_text, True, color)
-    # Background for text to make it readable
-    text_rect = text.get_rect(center=(WIDTH // 2, HEIGHT // 2))
-    pygame.draw.rect(screen, BLACK, text_rect.inflate(20, 20))
-    screen.blit(text, text_rect)
+    screen.fill(BLACK)
+    draw_text(winner_text, font, color)
     pygame.display.flip()
     pygame.time.delay(3000)
 
-def main():
+def menu():
+    selected_index = 0
+    options = ["START GAME", "QUIT"]
+    
+    while True:
+        screen.fill(BLACK)
+        
+        # Draw background elements
+        for y in range(0, HEIGHT, 40):
+            pygame.draw.rect(screen, (30, 30, 30), (WIDTH // 2 - 2, y, 4, 20))
+
+        draw_text("NEON PING PONG", font, CYAN, -150)
+
+        # Draw options with highlighting
+        for i, option in enumerate(options):
+            color = WHITE if i == selected_index else (100, 100, 100)
+            prefix = "> " if i == selected_index else "  "
+            
+            # Draw selection highlight
+            text_surf = small_font.render(prefix + option, True, color)
+            text_rect = text_surf.get_rect(center=(WIDTH // 2, HEIGHT // 2 + (i * 60)))
+            
+            if i == selected_index:
+                # Add a subtle glow to selection
+                for g in range(3):
+                    glow_surf = small_font.render(prefix + option, True, (0, 150, 150) if i == 0 else (150, 0, 150))
+                    glow_rect = glow_surf.get_rect(center=(WIDTH // 2, HEIGHT // 2 + (i * 60)))
+                    screen.blit(glow_surf, glow_rect.inflate(g*2, g*2))
+
+            screen.blit(text_surf, text_rect)
+
+        # Decorative neon paddles
+        pygame.draw.rect(screen, CYAN, (50, HEIGHT // 2 - 50, 15, 100))
+        pygame.draw.rect(screen, MAGENTA, (WIDTH - 65, HEIGHT // 2 - 50, 15, 100))
+
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                pygame.quit()
+                sys.exit()
+            if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_UP:
+                    selected_index = (selected_index - 1) % len(options)
+                if event.key == pygame.K_DOWN:
+                    selected_index = (selected_index + 1) % len(options)
+                if event.key == pygame.K_RETURN:
+                    if selected_index == 0:
+                        return # Start game
+                    if selected_index == 1:
+                        pygame.quit()
+                        sys.exit()
+                if event.key == pygame.K_ESCAPE:
+                    pygame.quit()
+                    sys.exit()
+
+        pygame.display.flip()
+        clock.tick(FPS)
+
+def game_loop():
     # Game objects
     p1 = Paddle(20, HEIGHT // 2 - 50, 15, 100, CYAN)
     p2 = Paddle(WIDTH - 35, HEIGHT // 2 - 50, 15, 100, MAGENTA)
@@ -91,10 +151,11 @@ def main():
         # Event handling
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
-                running = False
+                pygame.quit()
+                sys.exit()
             if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_ESCAPE:
-                    running = False
+                    return # Back to menu
 
         # Movements
         p1.move(pygame.K_w, pygame.K_s)
@@ -105,8 +166,8 @@ def main():
         if ball.rect.colliderect(p1.rect) or ball.rect.colliderect(p2.rect):
             ball.speed_x *= -1
             # Increase speed slightly after collision
-            ball.speed_x *= 1.1
-            ball.speed_y *= 1.1
+            ball.speed_x *= 1.05
+            ball.speed_y *= 1.05
 
         # Scoring
         if ball.rect.left <= 0:
@@ -118,20 +179,12 @@ def main():
 
         # Check for winner
         if score1 >= WINNING_SCORE:
-            screen.fill(BLACK)
-            p1.draw(screen)
-            p2.draw(screen)
-            ball.draw(screen)
             draw_winner("LEFT PLAYER WINS! 🏆", CYAN)
             running = False
         elif score2 >= WINNING_SCORE:
-            screen.fill(BLACK)
-            p1.draw(screen)
-            p2.draw(screen)
-            ball.draw(screen)
             draw_winner("RIGHT PLAYER WINS! 🏆", MAGENTA)
             running = False
-        
+
         if not running:
             break
 
@@ -155,8 +208,10 @@ def main():
         pygame.display.flip()
         clock.tick(FPS)
 
-    pygame.quit()
-    sys.exit()
+def main():
+    while True:
+        menu()
+        game_loop()
 
 if __name__ == "__main__":
     main()
