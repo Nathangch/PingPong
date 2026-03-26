@@ -55,10 +55,10 @@ pip install pygame
 
 3. Execute o jogo:
 ```bash
-python ping_pong.py
+python main.py
 ```
 
 ---
 
-🔗 **Jogue a versao Web (Legacy)**: [https://nathangch.github.io/PingPong/](https://nathangch.github.io/PingPong/)  
-*(Nota: A versão Web pode não conter as atualizações mais recentes da versão Python Desktop).*
+🔗 **Jogue agora no seu navegador**: [https://nathangch.github.io/PingPong/](https://nathangch.github.io/PingPong/)  
+*(A versão Web é mantida em sincronia com as atualizações da versão Desktop através do `pygbag`.)*
